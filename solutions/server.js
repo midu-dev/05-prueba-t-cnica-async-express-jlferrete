@@ -1,4 +1,4 @@
-import express, { Router } from 'express'
+import express from 'express'
 
 export const app = express()
 app.use(express.json())
@@ -8,75 +8,54 @@ const items = [{
   content: 'Item 1'
 }]
 
-let currentId = 2
+// Read
+app.get('/items', (req, res) => {
+  return res.json(items)
+})
 
-const getAllItems = (req, res) => {
-  try {
-    res.json(items)
-  } catch (error) {
-    res.status(500).json({ message: error.message })
+app.get('/items/:id', ({ params }, res) => {
+  const id = Number(params.id)
+  const item = items.find(item => item.id === id)
+  return res.json(item)
+})
+
+// Create
+app.post('/items', (req, res) => {
+  const { content } = req.body
+
+  const item = {
+    id: items.length + 1,
+    content
   }
-}
 
-const getItem = (req, res) => {
-  try {
-    const { id } = req.params
-    const item = items.find(item => item.id.toString() === id)
-    if (item === undefined) res.status(404).json({ message: 'Item not found' })
-    res.json(item)
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-}
+  items.push(item)
+  return res.json(item)
+})
 
-const addItem = (req, res) => {
-  try {
-    const { content } = req.body
-    const newItem = {
-      id: currentId,
-      content
-    }
-    items.push(newItem)
-    currentId++
-    res.json(newItem)
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-}
+// Update Modify
+app.put('/items/:id', ({ params, body }, res) => {
+  const id = Number(params.id)
+  const { content } = body
+  const itemFound = items.find(item => item.id === id)
+  itemFound.content = content
+  return res.json(itemFound)
+})
 
-const updateItem = (req, res) => {
-  try {
-    const { id } = req.params
-    const item = items.find(item => item.id.toString() === id)
-    if (item === undefined) res.status(404).json({ message: 'Item not found' })
-    const { content } = req.body
-    item.content = content
-    items.push(item)
-    res.json(item)
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-}
+// Update PATCH
+app.patch('/items/:id', ({ params, body }, res) => {
+  const id = Number(params.id)
+  const item = body
+  const index = items.findIndex(item => item.id === id)
+  items[index] = { ...items[index], ...item }
+  return res.json(items[index])
+})
 
-const deleteItem = (req, res) => {
-  try {
-    const { id } = req.params
-    const itemIndex = items.findIndex(item => item.id.toString() === id)
-    if (itemIndex !== -1) items.splice(itemIndex, 1)
-    res.json({ message: 'Deleted successfully' })
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-}
-
-const itemsRoutes = Router()
-
-itemsRoutes.get('/items', getAllItems)
-itemsRoutes.post('/items', addItem)
-itemsRoutes.get('/items/:id', getItem)
-itemsRoutes.patch('/items/:id', updateItem)
-itemsRoutes.delete('/items/:id', deleteItem)
-
-app.use(itemsRoutes)
+// Delete
+app.delete('/items/:id', ({ params }, res) => {
+  const id = Number(params.id)
+  const itemFound = items.findIndex(item => item.id === id)
+  items.splice(itemFound, 1)
+  return res.status(200).json()
+})
 
 export const server = app.listen(3000)
