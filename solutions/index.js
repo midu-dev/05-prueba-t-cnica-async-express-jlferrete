@@ -1,5 +1,6 @@
 import net from 'node:net'
 import fs from 'node:fs'
+import fsPromises from 'node:fs/promises'
 
 // # EJERCICIO 1
 export const ping = (ip, callback) => {
